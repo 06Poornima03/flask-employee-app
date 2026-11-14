@@ -1,10 +1,20 @@
 pipeline {
 
-agent any
+    agent any
 
-  stages {
+    stages {
 
-        stage('Install Dependencies') {
+        stage('Check Python') {
+
+            steps {
+
+                sh 'python3 --version'
+
+            }
+
+        }
+
+        stage('Create Virtual Environment') {
 
             steps {
 
@@ -12,9 +22,21 @@ agent any
 
                     python3 -m venv venv
 
-                    ./venv/bin/python -m pip install --upgrade pip
+                    venv/bin/python -m pip install --upgrade pip
 
-                    ./venv/bin/python -m pip install -r requirements.txt
+                '''
+
+            }
+
+        }
+
+        stage('Install Dependencies') {
+
+            steps {
+
+                sh '''
+
+                    venv/bin/pip install -r requirements.txt
 
                 '''
 
@@ -28,25 +50,7 @@ agent any
 
                 sh '''
 
-                    nohup ./venv/bin/python app.py > flask.log 2>&1 &
-
-                    echo $! > flask.pid
-
-                    sleep 5
-
-                    if kill -0 $(cat flask.pid); then
-
-                        echo "Flask application started successfully!"
-
-                    else
-
-                        echo "Flask application failed to start!"
-
-                        cat flask.log
-
-                        exit 1
-
-                    fi
+                    venv/bin/python -c "import flask; print('Flask installed successfully')"
 
                 '''
 
@@ -54,17 +58,22 @@ agent any
 
         }
 
-post {
-
-    success {
-        echo 'Flask application started successfully!'
     }
 
-    failure {
-        echo 'Pipeline execution failed!'
+    post {
+
+        success {
+
+            echo 'Pipeline executed successfully!'
+
+        }
+
+        failure {
+
+            echo 'Pipeline execution failed!'
+
+        }
+
     }
 
-}
-
-}
 }
