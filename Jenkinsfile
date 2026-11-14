@@ -4,17 +4,7 @@ pipeline {
 
     stages {
 
-        stage('Check Python') {
-
-            steps {
-
-                sh 'python3 --version'
-
-            }
-
-        }
-
-        stage('Create Virtual Environment') {
+        stage('Install Dependencies') {
 
             steps {
 
@@ -22,21 +12,9 @@ pipeline {
 
                     python3 -m venv venv
 
-                    venv/bin/python -m pip install --upgrade pip
+                    ./venv/bin/python -m pip install --upgrade pip
 
-                '''
-
-            }
-
-        }
-
-        stage('Install Dependencies') {
-
-            steps {
-
-                sh '''
-
-                    venv/bin/pip install -r requirements.txt
+                    ./venv/bin/python -m pip install -r requirements.txt
 
                 '''
 
@@ -50,7 +28,25 @@ pipeline {
 
                 sh '''
 
-                    venv/bin/python -c "import flask; print('Flask installed successfully')"
+                    nohup ./venv/bin/python app.py > flask.log 2>&1 &
+
+                    echo $! > flask.pid
+
+                    sleep 5
+
+                    if kill -0 $(cat flask.pid); then
+
+                        echo "Flask application started successfully!"
+
+                    else
+
+                        echo "Flask application failed to start!"
+
+                        cat flask.log
+
+                        exit 1
+
+                    fi
 
                 '''
 
@@ -59,21 +55,4 @@ pipeline {
         }
 
     }
-
-    post {
-
-        success {
-
-            echo 'Pipeline executed successfully!'
-
-        }
-
-        failure {
-
-            echo 'Pipeline execution failed!'
-
-        }
-
-    }
-
 }
