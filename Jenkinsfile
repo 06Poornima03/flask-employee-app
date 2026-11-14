@@ -54,18 +54,6 @@ agent any
 
         }
 
-    }
-
-    stage('Run Flask Application') {
-        steps {
-            sh '''
-                nohup python3 app.py > flask.log 2>&1 &
-            '''
-        }
-    }
-
-}
-
 post {
 
     success {
@@ -78,4 +66,5 @@ post {
 
 }
 
+}
 }
