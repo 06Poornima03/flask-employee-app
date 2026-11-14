@@ -1,41 +1,48 @@
 pipeline {
 
+agent any
 
-    agent any
+stages {
 
-
-    stages {
-
-
-        stage('Install Dependencies') {
-            steps {
-                sh '''
-                    python3 -m pip install -r requirements.txt
-                '''
-            }
-        }
-
-
-        stage('Run Flask Application') {
-            steps {
-                sh '''
-                    nohup python3 app.py > flask.log 2>&1 &
-                '''
-            }
+    stage('Install Python3') {
+        steps {
+            sh '''
+                sudo apt-get update
+                sudo apt-get install -y python3 python3-pip
+                python3 --version
+                pip3 --version
+            '''
         }
     }
 
-
-    post {
-        success {
-            echo 'Flask application started successfully!'
-        }
-
-
-        failure {
-            echo 'Pipeline execution failed!'
+    stage('Install Dependencies') {
+        steps {
+            sh '''
+                python3 -m pip install -r requirements.txt
+            '''
         }
     }
+
+    stage('Run Flask Application') {
+        steps {
+            sh '''
+                nohup python3 app.py > flask.log 2>&1 &
+            '''
+        }
+    }
+
 }
 
+post {
 
+    success {
+        echo 'Flask application started successfully!'
+    }
+
+    failure {
+        echo 'Pipeline execution failed!'
+    }
+
+}
+
+}
